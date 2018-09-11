@@ -1,7 +1,7 @@
 # 拉取 CentOS
 FROM centos:7
 
-ENV NGINX_VERSION 1.15.0
+ARG nginx_version
 
 # 安装依赖
 RUN set -x \
@@ -13,9 +13,9 @@ RUN set -x \
   && cd ~/download \
 
   # 下载 nginx
-  && wget http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz \
-  && tar -zxvf nginx-$NGINX_VERSION.tar.gz \
-  && cd nginx-$NGINX_VERSION \
+  && wget http://nginx.org/download/nginx-$nginx_version.tar.gz \
+  && tar -zxvf nginx-$nginx_version.tar.gz \
+  && cd nginx-$nginx_version \
   && mkdir -p /var/cache/nginx \
   && groupadd nginx \
   && useradd -r -g nginx nginx \
