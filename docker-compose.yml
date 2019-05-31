@@ -1,4 +1,4 @@
-version: "3"
+version: "3.4"
 services:
   nginx:
     build:
@@ -57,9 +57,18 @@ services:
     command: ["/usr/local/redis/bin/redis-server", "/usr/local/redis/etc/redis.config"]
     container_name: redis
   mysql:
-    image: redis:4-alpine3.8
+    image: mysql:5.7
+    command: --default-authentication-plugin=mysql_native_password
     restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
     ports:
-      - "6379:6379"
-    container_name: redis
+      - "3306:3306"
+    volumes:
+      - mysqldata:/var/lib/mysql
+    container_name: mysql
+volumes:
+  mysqldata:
+    external:
+      name: mysqldata
 
