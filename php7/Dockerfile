@@ -13,7 +13,7 @@ RUN set -x \
   && yum -y install pcre pcre-devel zlib zlib-devel openssl openssl-devel libxml2 libxml2-devel libjpeg libjpeg-devel \
       libpng libpng-devel curl curl-devel libicu libicu-devel libmcrypt  libmcrypt-devel freetype freetype-devel \
       libmcrypt libmcrypt-devel bzip2-devel  gmp-devel autoconf gcc-c++ gcc wget make automake cmake \
-      libevent libevent-devel cyrus-sasl cyrus-sasl-devel
+      libevent libevent-devel cyrus-sasl cyrus-sasl-devel oniguruma-devel
 
 RUN set -x \
   && mkdir /opt/download \
@@ -54,6 +54,8 @@ RUN set -x \
     --enable-soap \
     --enable-sockets \
     --enable-zip \
+    --without-sqlite3 \
+    --without-pdo-sqlite \
   && make && make install \
   && yum clean all && rm -rf /var/cache/yum/* \
   && cp /opt/download/php/php.ini-development /opt/php/etc/php.ini \
@@ -68,7 +70,7 @@ RUN set -x \
   && cd /opt/download/libmemcached \
   && ./configure && make && make install \
   \
-  && wget -O /opt/download/php-memcached.tar.gz "https://github.com/php-memcached-dev/php-memcached/archive/2.2.0.tar.gz" \
+  && wget -O /opt/download/php-memcached.tar.gz "https://github.com/php-memcached-dev/php-memcached/archive/v3.1.5.tar.gz" \
   && mkdir -p /opt/download/php-memcached \
   && tar -zxvf /opt/download/php-memcached.tar.gz -C /opt/download/php-memcached --strip-components=1 \
   && cd /opt/download/php-memcached \

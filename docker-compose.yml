@@ -1,74 +1,107 @@
-version: "3.4"
+version: "3.5"
 services:
+# nginx 服务
   nginx:
-    build:
-      context: ./nginx
-      args:
-        nginx_version: 1.15.2
+    image: ${NGINX_IMAGE_TAG}
     volumes:
-    #- ./nginx/www:/usr/share/nginx/html
-    - ./nginx/config/nginx.conf:/etc/nginx/nginx.conf
-    restart: always
+      #- ./nginx/www:/usr/share/nginx/html
+      - ./nginx/config/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/config/conf.d:/etc/nginx/conf.d
+      - ${CODE_PATH}:/var/www
+    restart: ${NGINX_RESTART:-no}
 
         # 映射80和443端口
     ports:
-      - "80:80"
-    container_name: nginx
+      - "${NGINX_HOST_PORT}:80"
+    container_name: ${NGINX_CONTAINER_NAME}
+    networks:
+      inside_net:
+        ipv4_address: 10.0.0.13
+# php-5.6 服务
   php5:
     build:
       context: ./php5.6
       args:
-        php5_version: 5.6.37
-    restart: always
+        php_version: ${PHP5_VERSION}
+    restart: ${PHP5_RESTART}
     ports:
-      - "9000:9000"
-    command: ["/opt/php5/sbin/php-fpm", "-y", "/opt/php5/etc/php-fpm.conf", "-F"]
-    container_name: php5
+      - "${PHP5_HOST_PORT}:9000"
+    volumes:
+      - ./php5.6/config/php.ini-development:/opt/php/etc/php.ini
+      - ./php5.6/config/php-fpm.conf:/opt/php/etc/php-fpm.conf
+      - ${CODE_PATH}:/var/www
+    command: ["php-fpm", "-y", "/opt/php/etc/php-fpm.conf", "-F"]
+    container_name: ${PHP5_CONTAINER_NAME}
+    networks:
+      inside_net:
+        ipv4_address: 10.0.0.14
+# php-7 服务
   php7:
     build:
-      context: ./php7.2
+      context: ./php7
       args:
-        php7_version: 7.2.9
-    restart: always
+        php_version: ${PHP7_VERSION}
+    restart: ${PHP7_RESTART}
     ports:
-      - "9000:9000"
-    command: ["php-fpm", "-y", "/opt/php7/etc/php-fpm.conf", "-F"]
-    container_name: php7
-  memcached:
-    build:
-      context: ./memcached
-      args:
-        memcached_version: 1.5.10
-    restart: always
-    ports:
-      - "11211:11211"
-    command: ["memcached", "-u", "nobody", "-m", "5"]
-    container_name: memcached
-  redis:
-    build:
-      context: ./redis
-      args:
-        redis_version: 4.0.11
+      - "${PHP7_HOST_PORT}:9000"
     volumes:
-      - ./redis/config/redis.config:/usr/local/redis/etc/redis.config
-    restart: always
+      - ./php7/config/php.ini-development:/opt/php/etc/php.ini
+      - ./php7/config/php-fpm.conf:/opt/php/etc/php-fpm.conf
+      - ./php7/config/www.conf:/opt/php/etc/php-fpm.d/www.conf
+      - ${CODE_PATH}:/var/www
+    command: ["php-fpm", "-y", "/opt/php/etc/php-fpm.conf", "-F"]
+    container_name: ${PHP7_CONTAINER_NAME}
+    networks:
+      inside_net:
+        ipv4_address: 10.0.0.15
+# memcached 服务
+  memcached:
+    image: ${MEMCACHED_IMAGE_TAG}
+    restart: ${MEMCACHED_RESTART}
     ports:
-      - "6379:6379"
-    command: ["/usr/local/redis/bin/redis-server", "/usr/local/redis/etc/redis.config"]
-    container_name: redis
+      - "${MEMCACHED_HOST_PORT:-11211}:11211"
+    networks:
+      inside_net:
+        ipv4_address: 10.0.0.10
+    command: ["memcached", "-u", "nobody", "-m", "5"]
+    container_name: ${MEMCACHED_CONTAINER_NAME}
+# redis 服务
+  redis:
+    image: ${REDIS_IMAGE_TAG}
+    volumes:
+      - ./redis/config/redis.conf:/usr/local/redis/etc/redis.conf
+    restart: ${REDIS_RESTART:-no}
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    networks:
+      inside_net:
+        ipv4_address: 10.0.0.11
+    command: ["redis-server", "/usr/local/redis/etc/redis.conf"]
+    container_name: ${REDIS_CONTAINER_NAME}
+# mysql 服务
   mysql:
-    image: mysql:5.7
+    image: ${MYSQL_IMAGE_TAG}
     command: --default-authentication-plugin=mysql_native_password
-    restart: always
+    restart: ${MYSQL_RESTART}
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
-      - "3306:3306"
+      - "${MYSQL_HOST_PORT:-3306}:3306"
     volumes:
       - mysqldata:/var/lib/mysql
-    container_name: mysql
+    container_name: ${MYSQL_CONTAINER_NAME}
+    networks:
+      inside_net:
+        ipv4_address: 10.0.0.12
 volumes:
   mysqldata:
     external:
       name: mysqldata
-
+networks:
+  inside_net:
+    name: dev_inside_net
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "10.0.0.0/24"
