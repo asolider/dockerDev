@@ -4,7 +4,7 @@
 前置需求，自己完成
 
 - docker
-- docker-compose：多个容器管理工具
+- docker-compose：多个容器管理工具
 
 # 二、快速使用
 
@@ -24,16 +24,16 @@
 5. php5：5.6.40
 6. php7：7.4.9
 
-配置文件：当前目录下服务下配置目录中，自己可以定义
+配置文件：当前目录下服务下配置目录中，自己可以定义
 
 
 # 四、启动，关闭
 
-1. 停止所有 ：docker-compose stop
+1. 停止所有 ：docker-compose stop
 2. 启动所有 ：docker-compose start
 3. 单个启动 ：docker-compose start nginx
 4. 单个停止 ：docker-compose stop nginx
 
 # 。。
 
-大部分情况下，用了mysql的服务，创建省事
+大部分情况下，用了mysql的服务，创建省事
